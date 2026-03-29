@@ -1,0 +1,114 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500&display=swap");
+@import "tailwindcss";
+
+:root {
+  --cube-size: calc(min(12vw, 100px) * 1.2);
+  --cube-depth: calc(var(--cube-size) / 2);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+.cube-wrap {
+  perspective: 900px;
+}
+
+.cube {
+  width: var(--cube-size);
+  height: var(--cube-size);
+  transform-style: preserve-3d;
+  animation: spin3d 9s linear infinite;
+}
+
+.face {
+  position: absolute;
+  top: -0.5px;
+  left: -0.5px;
+  width: calc(100% + 1px);
+  height: calc(100% + 1px);
+  background: #000;
+  backface-visibility: hidden;
+}
+
+.front {
+  transform: translateZ(calc(var(--cube-size) / 2));
+}
+
+.back {
+  transform: rotateY(180deg) translateZ(calc(var(--cube-size) / 2));
+}
+
+.right {
+  transform: rotateY(90deg) translateZ(calc(var(--cube-size) / 2));
+}
+
+.left {
+  transform: rotateY(-90deg) translateZ(calc(var(--cube-size) / 2));
+}
+
+.top {
+  transform: rotateX(90deg) translateZ(calc(var(--cube-size) / 2));
+}
+
+.bottom {
+  transform: rotateX(-90deg) translateZ(calc(var(--cube-size) / 2));
+}
+
+@keyframes spin3d {
+  0% {
+    transform: rotateX(-18deg) rotateY(0deg) rotateZ(0deg);
+  }
+  25% {
+    transform: rotateX(70deg) rotateY(90deg) rotateZ(50deg);
+  }
+  50% {
+    transform: rotateX(150deg) rotateY(180deg) rotateZ(120deg);
+  }
+  75% {
+    transform: rotateX(240deg) rotateY(270deg) rotateZ(230deg);
+  }
+  100% {
+    transform: rotateX(342deg) rotateY(360deg) rotateZ(360deg);
+  }
+}
+
+.text-link {
+  display: block;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  color: #b5b5b5;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font: inherit;
+  line-height: inherit;
+  transition: color 160ms ease;
+}
+
+.text-link:hover,
+.text-link:focus-visible {
+  color: #000;
+  outline: none;
+}
+
+.intro {
+  cursor: pointer;
+}
+
+.intro-word {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+
+@media (max-width: 760px) {
+  .cube-wrap {
+    top: 34%;
+  }
+}
