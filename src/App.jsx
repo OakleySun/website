@@ -25,10 +25,37 @@ const FOOTER_MENU = {
   },
 };
 
+const PROJECT_PANELS = {
+  chromafm: { label: "ChromaFM" },
+  loop: { label: "Loop" },
+};
+
+const PROJECT_CONTENT = {
+  chromafm: {
+    title: "CHROMAFM",
+    subtitle: "Prototype Template",
+    summary:
+      "Space for your project overview, goals, and key interaction notes. Replace this text with your ChromaFM details.",
+    bullets: ["Role: ", "Timeline: ", "Stack: ", "Status: "],
+    media: [
+      { type: "video", src: "/media/chromafm-prototype.mp4", label: "Prototype walkthrough" },
+      { type: "image", src: "/media/output.png", label: "Gallery board" },
+    ],
+  },
+  loop: {
+    title: "LOOP",
+    subtitle: "Prototype Template",
+    summary:
+      "Prototype preview and notes. Add your process, what problem it solves, and implementation highlights here.",
+    bullets: ["Role: ", "Timeline: ", "Stack: ", "Status: "],
+    media: [],
+  },
+};
+
 const rightColumn = [
-  "Dior Homme Candles",
-  "Dior Homme Colognes",
-  "Dior Homme First Time",
+  "",
+  "",
+  "",
 ];
 
 // Intro animation controls. Edit this block to change copy, placement, size, and pacing.
@@ -115,12 +142,153 @@ function Cube({ visible }) {
   );
 }
 
+function ProjectsPanels({ visible, open }) {
+  return (
+    <div
+      className={`cube-wrap pointer-events-none absolute left-1/2 top-[37%] grid h-[200px] w-[200px] -translate-x-1/2 -translate-y-1/2 place-items-center transition-all duration-500 ease-in-out md:h-[220px] md:w-[220px] ${
+        visible ? "scale-100 opacity-100" : "scale-90 opacity-0"
+      }`}
+    >
+      <div className={`unfold-wrap ${open ? "open" : ""}`}>
+        <div className="unfold-square left">
+          <span className="unfold-label">CHROMAFM</span>
+        </div>
+        <div className="unfold-square right">
+          <span className="unfold-label">LOOP</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MediaGallery({ items }) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [showFallback, setShowFallback] = useState(false);
+  const swipeStartXRef = useRef(null);
+
+  useEffect(() => {
+    setActiveIndex(0);
+    setShowFallback(false);
+  }, [items]);
+
+  if (!items?.length) {
+    return <div className="project-prototype-placeholder">Video placeholder</div>;
+  }
+
+  const activeItem = items[activeIndex];
+  const goNext = () => {
+    setShowFallback(false);
+    setActiveIndex((current) => (current + 1) % items.length);
+  };
+  const goPrev = () => {
+    setShowFallback(false);
+    setActiveIndex((current) => (current - 1 + items.length) % items.length);
+  };
+  const handlePointerDown = (event) => {
+    swipeStartXRef.current = event.clientX;
+  };
+  const handlePointerUp = (event) => {
+    if (swipeStartXRef.current === null) {
+      return;
+    }
+    const deltaX = event.clientX - swipeStartXRef.current;
+    swipeStartXRef.current = null;
+    if (Math.abs(deltaX) < 40) {
+      return;
+    }
+    if (deltaX < 0) {
+      goNext();
+    } else {
+      goPrev();
+    }
+  };
+
+  return (
+    <div className="project-gallery">
+      <div
+        className="project-prototype-frame"
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+      >
+        {activeItem.type === "video" ? (
+          <video
+            key={activeItem.src}
+            className="project-prototype-video"
+            src={activeItem.src}
+            controls
+            preload="metadata"
+            playsInline
+          />
+        ) : showFallback ? (
+          <div className="project-prototype-placeholder">{activeItem.label}</div>
+        ) : (
+          <img
+            key={activeItem.src}
+            className="project-prototype-image"
+            src={activeItem.src}
+            alt={activeItem.label}
+            onError={() => setShowFallback(true)}
+          />
+        )}
+      </div>
+
+      <div className="project-gallery-controls">
+        <button type="button" className="project-gallery-btn" onClick={goPrev}>
+          Prev
+        </button>
+        <p className="project-gallery-count">
+          {activeIndex + 1} / {items.length}
+        </p>
+        <button type="button" className="project-gallery-btn" onClick={goNext}>
+          Next
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ProjectContent({ projectId }) {
+  if (!projectId) {
+    return null;
+  }
+
+  const project = PROJECT_CONTENT[projectId];
+
+  return (
+    <section className="project-content-area">
+      <header className="project-content-header">
+        <h2 className="project-content-title">{project.title}</h2>
+        <p className="project-content-subtitle">{project.subtitle}</p>
+      </header>
+
+      <div className="project-content-grid">
+        <article className="project-content-meta">
+          <p className="project-content-summary">{project.summary}</p>
+          <ul className="project-content-list">
+            {project.bullets.map((item) => (
+              <li key={item}>
+                {item}
+              </li>
+            ))}
+          </ul>
+        </article>
+
+        <section className="project-content-prototype">
+          <p className="project-prototype-label">Prototype</p>
+          <MediaGallery items={project.media} />
+        </section>
+      </div>
+    </section>
+  );
+}
+
 export default function App() {
   const [showIntro, setShowIntro] = useState(true);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [activeColumnAItem, setActiveColumnAItem] = useState(null);
   const [columnBTop, setColumnBTop] = useState(0);
   const [isCubeVisible, setIsCubeVisible] = useState(true);
+  const [activeProjectScreen, setActiveProjectScreen] = useState(null);
   const closeMenuTimerRef = useRef(null);
 
   const lineTimings = useMemo(() => {
@@ -181,6 +349,10 @@ export default function App() {
   );
 
   useEffect(() => {
+    if (activeProjectScreen) {
+      return undefined;
+    }
+
     const handleMouseMove = (event) => {
       const threshold = window.innerHeight * (2 / 3);
       setIsCubeVisible(event.clientY >= threshold);
@@ -188,10 +360,12 @@ export default function App() {
 
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, []);
+  }, [activeProjectScreen]);
 
   const skipIntro = () => setShowIntro(false);
   const activeColumnBLines = FOOTER_MENU.columnBByItem[activeColumnAItem] ?? [];
+  const isProjectsActive = activeColumnAItem === "projects";
+  const hasActiveProjectScreen = Boolean(activeProjectScreen);
   const activateColumnItem = (id, event) => {
     if (closeMenuTimerRef.current) {
       window.clearTimeout(closeMenuTimerRef.current);
@@ -201,6 +375,10 @@ export default function App() {
     setColumnBTop(event.currentTarget.offsetTop);
   };
   const queueCloseMenu = () => {
+    if (activeProjectScreen) {
+      return;
+    }
+
     if (closeMenuTimerRef.current) {
       window.clearTimeout(closeMenuTimerRef.current);
     }
@@ -215,6 +393,22 @@ export default function App() {
       closeMenuTimerRef.current = null;
     }
   };
+  const handleColumnAClick = (id) => {
+    if (id !== "projects") {
+      setActiveProjectScreen(null);
+    }
+  };
+  const handleColumnBClick = (line) => {
+    if (!isProjectsActive) {
+      return;
+    }
+
+    const normalized = line.toLowerCase();
+    if (normalized === "chromafm" || normalized === "loop") {
+      setActiveProjectScreen(normalized);
+      setActiveColumnAItem("projects");
+    }
+  };
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#e5e5e5] font-['Montserrat',Arial,sans-serif]">
@@ -223,7 +417,9 @@ export default function App() {
           showIntro ? "pointer-events-none opacity-0" : "opacity-100"
         }`}
       >
-        <Cube visible={isCubeVisible} />
+        <Cube visible={isCubeVisible && !isProjectsActive && !hasActiveProjectScreen} />
+        <ProjectsPanels visible={isCubeVisible && !hasActiveProjectScreen} open={isProjectsActive} />
+        <ProjectContent key={activeProjectScreen ?? "none"} projectId={activeProjectScreen} />
 
         <footer className="absolute inset-x-0 bottom-5 flex flex-col items-start justify-between gap-6 px-6 sm:bottom-10 sm:flex-row sm:items-end sm:gap-[8vw] sm:px-[6vw]">
           <div
@@ -241,6 +437,7 @@ export default function App() {
                 }`}
                 onMouseEnter={(event) => activateColumnItem(FOOTER_MENU.titleId, event)}
                 onFocus={(event) => activateColumnItem(FOOTER_MENU.titleId, event)}
+                onClick={() => handleColumnAClick(FOOTER_MENU.titleId)}
               >
                 {FOOTER_MENU.title}
               </button>
@@ -256,6 +453,7 @@ export default function App() {
                     }`}
                     onMouseEnter={(event) => activateColumnItem(item.id, event)}
                     onFocus={(event) => activateColumnItem(item.id, event)}
+                    onClick={() => handleColumnAClick(item.id)}
                   >
                     {item.label}
                   </button>
@@ -270,7 +468,12 @@ export default function App() {
               style={{ top: `${columnBTop}px` }}
             >
               {activeColumnBLines.map((line) => (
-                <button key={line} type="button" className="text-link block text-left">
+                <button
+                  key={line}
+                  type="button"
+                  className="text-link block text-left"
+                  onClick={() => handleColumnBClick(line)}
+                >
                   {line}
                 </button>
               ))}
