@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
 
 // Footer navigation config:
 // - Add/edit/remove buttons in columnA.
@@ -33,13 +33,52 @@ const PROJECT_PANELS = {
 const PROJECT_CONTENT = {
   chromafm: {
     title: "CHROMAFM",
-    subtitle: "Prototype Template",
-    summary:
-      "Space for your project overview, goals, and key interaction notes. Replace this text with your ChromaFM details.",
-    bullets: ["Role: ", "Timeline: ", "Stack: ", "Status: "],
+    subtitle: "Spotify Wrapped reimagined as a color palette",
+    summary: (
+      <>
+        <strong>
+          ChromaFM is a full-stack web application that transforms Spotify listening data into a
+          color-based visual profile of a user's music taste. By integrating Spotify OAuth and APIs,
+          the app analyzes album artwork to extract dominant colors and organizes a user's top albums
+          into distinct color categories using a custom ranking algorithm based on top tracks, saved
+          albums, and artist data. It presents results through an interactive grid and allows the user to generate a
+          high-quality, shareable image optimized for social media. Built with React and Node.js/Express,
+          the system incorporates performance optimizations such as caching and request deduplication to
+          ensure fast, reliable user experiences while delivering a unique blend of data visualization and
+          design.
+        </strong>
+      </>
+    ),
+    summaryDetail: (
+      <>
+        The inspiration for ChromaFM originated from a viral trend on TikTok, where users shared their
+        favorite albums organized by the color of their cover art. After trying it out for myself, I
+        found that the process of manually choosing albums and designing the graphics for posting was
+        time-consuming and required many hard decisions. That inspired me to build a tool that could
+        automatically generate these visuals in a more data-driven and seamless way using real Spotify
+        listening data.
+      </>
+    ),
+    infoRow: [
+      { label: "Built with", value: "React, Node.js/Express, Spotify API, OAuth" },
+      { label: "Finished date", value: "January 2026" },
+      {
+        label: "Links",
+        value: (
+          <a
+            href="https://github.com/OakleySun/ChromaFM"
+            target="_blank"
+            rel="noreferrer"
+            className="text-link normal-case"
+          >
+            GitHub
+          </a>
+        ),
+      },
+    ],
     media: [
-      { type: "video", src: "/media/chromafm-prototype.mp4", label: "Prototype walkthrough" },
-      { type: "image", src: "/media/output.png", label: "Gallery board" },
+      { type: "video", src: "/media/chromafm-prototype.mp4", label: "Video Demo" },
+      { type: "image", src: "/media/output.png", label: "Exported Images Examples" },
     ],
   },
   loop: {
@@ -47,11 +86,20 @@ const PROJECT_CONTENT = {
     subtitle: "Prototype Template",
     summary:
       "Prototype preview and notes. Add your process, what problem it solves, and implementation highlights here.",
-    bullets: ["Role: ", "Timeline: ", "Stack: ", "Status: "],
+    summaryDetail: (
+      <>
+        This paragraph can hold additional context and outcomes.{" "}
+        <strong>Use bold text to emphasize key points.</strong>
+      </>
+    ),
+    infoRow: [
+      { label: "Built with", value: "TBD" },
+      { label: "Finished date", value: "TBD" },
+      { label: "Links", value: "TBD" },
+    ],
     media: [],
   },
 };
-
 const rightColumn = [
   "",
   "",
@@ -164,12 +212,47 @@ function ProjectsPanels({ visible, open }) {
 function MediaGallery({ items }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [showFallback, setShowFallback] = useState(false);
+  const [videoLoading, setVideoLoading] = useState(false);
+  const [shouldMountVideo, setShouldMountVideo] = useState(true);
   const swipeStartXRef = useRef(null);
 
   useEffect(() => {
     setActiveIndex(0);
     setShowFallback(false);
+    const startsWithVideo = items?.[0]?.type === "video";
+    setVideoLoading(startsWithVideo);
+    setShouldMountVideo(!startsWithVideo);
   }, [items]);
+
+  useEffect(() => {
+    if (!items?.length) {
+      return;
+    }
+
+    items.forEach((item) => {
+      if (item.type === "image") {
+        const img = new Image();
+        img.src = item.src;
+      }
+    });
+  }, [items]);
+
+  useEffect(() => {
+    const active = items?.[activeIndex];
+    if (!active || active.type !== "video") {
+      setShouldMountVideo(true);
+      setVideoLoading(false);
+      return undefined;
+    }
+
+    setShouldMountVideo(false);
+    const timer = window.setTimeout(() => {
+      setShouldMountVideo(true);
+      setVideoLoading(true);
+    }, 180);
+
+    return () => window.clearTimeout(timer);
+  }, [activeIndex, items]);
 
   if (!items?.length) {
     return <div className="project-prototype-placeholder">Video placeholder</div>;
@@ -178,11 +261,19 @@ function MediaGallery({ items }) {
   const activeItem = items[activeIndex];
   const goNext = () => {
     setShowFallback(false);
-    setActiveIndex((current) => (current + 1) % items.length);
+    setActiveIndex((current) => {
+      const next = (current + 1) % items.length;
+      setVideoLoading(items[next]?.type === "video");
+      return next;
+    });
   };
   const goPrev = () => {
     setShowFallback(false);
-    setActiveIndex((current) => (current - 1 + items.length) % items.length);
+    setActiveIndex((current) => {
+      const next = (current - 1 + items.length) % items.length;
+      setVideoLoading(items[next]?.type === "video");
+      return next;
+    });
   };
   const handlePointerDown = (event) => {
     swipeStartXRef.current = event.clientX;
@@ -205,20 +296,31 @@ function MediaGallery({ items }) {
 
   return (
     <div className="project-gallery">
+      <p className="project-prototype-label">{activeItem.label}</p>
       <div
         className="project-prototype-frame"
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
       >
         {activeItem.type === "video" ? (
-          <video
-            key={activeItem.src}
-            className="project-prototype-video"
-            src={activeItem.src}
-            controls
-            preload="metadata"
-            playsInline
-          />
+          <>
+            {shouldMountVideo ? (
+              <video
+                key={activeItem.src}
+                className="project-prototype-video"
+                src={activeItem.src}
+                controls
+                preload="metadata"
+                playsInline
+                onLoadedData={() => setVideoLoading(false)}
+                onWaiting={() => setVideoLoading(true)}
+                onPlaying={() => setVideoLoading(false)}
+              />
+            ) : null}
+            {videoLoading || !shouldMountVideo ? (
+              <div className="project-video-loading">Loading video...</div>
+            ) : null}
+          </>
         ) : showFallback ? (
           <div className="project-prototype-placeholder">{activeItem.label}</div>
         ) : (
@@ -264,17 +366,24 @@ function ProjectContent({ projectId }) {
       <div className="project-content-grid">
         <article className="project-content-meta">
           <p className="project-content-summary">{project.summary}</p>
-          <ul className="project-content-list">
-            {project.bullets.map((item) => (
-              <li key={item}>
-                {item}
-              </li>
+          <p
+            className={`project-content-summary ${
+              projectId === "chromafm" ? "" : "project-content-summary-detail"
+            }`}
+          >
+            {project.summaryDetail}
+          </p>
+          <section className="project-info-row">
+            {project.infoRow.map((item) => (
+              <div key={item.label} className="project-info-cell">
+                <p className="project-info-label">{item.label}</p>
+                <p className="project-info-value">{item.value}</p>
+              </div>
             ))}
-          </ul>
+          </section>
         </article>
 
         <section className="project-content-prototype">
-          <p className="project-prototype-label">Prototype</p>
           <MediaGallery items={project.media} />
         </section>
       </div>
@@ -290,6 +399,13 @@ export default function App() {
   const [isCubeVisible, setIsCubeVisible] = useState(true);
   const [activeProjectScreen, setActiveProjectScreen] = useState(null);
   const closeMenuTimerRef = useRef(null);
+
+  useEffect(() => {
+    const preloadVideo = document.createElement("video");
+    preloadVideo.preload = "metadata";
+    preloadVideo.src = "/media/chromafm-prototype.mp4";
+    preloadVideo.load();
+  }, []);
 
   const lineTimings = useMemo(() => {
     const lines = INTRO_CONFIG.lines.map((line, index) => {
@@ -421,7 +537,7 @@ export default function App() {
         <ProjectsPanels visible={isCubeVisible && !hasActiveProjectScreen} open={isProjectsActive} />
         <ProjectContent key={activeProjectScreen ?? "none"} projectId={activeProjectScreen} />
 
-        <footer className="absolute inset-x-0 bottom-5 flex flex-col items-start justify-between gap-6 px-6 sm:bottom-10 sm:flex-row sm:items-end sm:gap-[8vw] sm:px-[6vw]">
+        <footer className="absolute inset-x-0 bottom-1 flex flex-col items-start justify-between gap-6 px-6 sm:bottom-5 sm:flex-row sm:items-end sm:gap-[8vw] sm:px-[6vw]">
           <div
             className="relative flex gap-8 sm:gap-[3.2vw]"
             onMouseEnter={cancelCloseMenu}
@@ -560,3 +676,4 @@ export default function App() {
     </main>
   );
 }
+
