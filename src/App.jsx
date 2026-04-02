@@ -41,7 +41,7 @@ const EXPERIENCE_TIMELINE = {
       icon: "/media/experience-icon-turing.jpg",
       company: "Turing",
       role: "AI QA Analyst Intern",
-      period: "Aug 2026 - Present",
+      period: "Aug 2025 - Present",
       location: "Palo Alto, California",
       points: [
         <>
@@ -68,7 +68,7 @@ const EXPERIENCE_TIMELINE = {
       icon: "/media/experience-icon-gdsc.png",
       company: "UBC Google Student Developer Club",
       role: "Product Developer",
-      period: "Sep 2026 - Present",
+      period: "Jan 2026 - Present",
       location: "Vancouver, Canada",
       hasDetails: false,
       points: [
@@ -898,7 +898,7 @@ export default function App() {
     navigateCloseTimerRef.current = window.setTimeout(() => {
       setIsNavPanelOpen(false);
       navigateCloseTimerRef.current = null;
-    }, 130);
+    }, 700);
   };
   const cancelNavigatePanelClose = () => {
     if (isMobileViewport) {
@@ -1010,10 +1010,10 @@ export default function App() {
             isNavigateToggleMode ? "navigate-mode" : ""
           }`}
         >
-          {isNavigateToggleMode && !isNavPanelOpen ? (
+          {isNavigateToggleMode ? (
             <button
               type="button"
-              className={`navigate-toggle ${isNavPanelOpen ? "open" : ""}`}
+              className={`navigate-toggle ${isNavPanelOpen ? "open is-hidden" : ""}`}
               onMouseEnter={() => {
                 if (!isMobileViewport) {
                   setIsNavPanelOpen(true);
@@ -1024,7 +1024,11 @@ export default function App() {
                   setIsNavPanelOpen(true);
                 }
               }}
-              onClick={() => setIsNavPanelOpen(true)}
+              onClick={() => {
+                if (!isNavPanelOpen) {
+                  setIsNavPanelOpen(true);
+                }
+              }}
               aria-expanded={isNavPanelOpen}
             >
               Navigate
@@ -1033,17 +1037,21 @@ export default function App() {
 
           <div
             ref={footerPanelRef}
-            className={`footer-panel ${isNavPanelOpen ? "open" : "closed"} ${
-              isNavigateToggleMode && activeColumnBLines.length > 0 ? "has-col-b" : ""
-            }`}
-            onMouseEnter={cancelNavigatePanelClose}
-            onMouseLeave={queueNavigatePanelClose}
+            className={`footer-panel ${isNavPanelOpen ? "open" : "closed"}`}
           >
             <div
-              className="footer-nav-wrap relative flex gap-8 sm:gap-[3.2vw]"
+              className={`footer-nav-wrap relative flex gap-8 sm:gap-[3.2vw] ${
+                isNavigateToggleMode && activeColumnBLines.length > 0 ? "has-col-b" : ""
+              }`}
               style={isNavigateToggleMode ? { "--col-b-top": `${columnBTop}px` } : undefined}
-              onMouseEnter={cancelCloseMenu}
-              onMouseLeave={queueCloseMenu}
+              onMouseEnter={() => {
+                cancelCloseMenu();
+                cancelNavigatePanelClose();
+              }}
+              onMouseLeave={() => {
+                queueCloseMenu();
+                queueNavigatePanelClose();
+              }}
             >
               <div
                 className="footer-col-a min-w-0 text-[12px] leading-[1.35] tracking-[0.03em] uppercase text-[#b5b5b5] sm:text-[13px]"
@@ -1088,6 +1096,11 @@ export default function App() {
                   activeColumnBLines.length > 0 ? "opacity-100" : "pointer-events-none opacity-0"
                 }`}
                 style={{ top: `${columnBTop}px` }}
+                onMouseEnter={() => {
+                  cancelCloseMenu();
+                  cancelNavigatePanelClose();
+                }}
+                onFocus={cancelNavigatePanelClose}
               >
                 {activeColumnBLines.map((line) => (
                   <button
