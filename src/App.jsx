@@ -1,4 +1,5 @@
-﻿import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 // Footer navigation config:
 // - Add/edit/remove buttons in columnA.
@@ -1202,6 +1203,7 @@ export default function App() {
           Click to skip
         </p>
       </section>
+      <SpeedInsights />
     </main>
   );
 }
