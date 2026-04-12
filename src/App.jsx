@@ -68,7 +68,7 @@ const EXPERIENCE_TIMELINE = {
       icon: "/media/experience-icon-gdsc.png",
       company: "UBC Google Student Developer Club",
       role: "Product Developer",
-      period: "Jan 2026 - Present",
+      period: "Sept 2025 - Present",
       location: "Vancouver, Canada",
       hasDetails: false,
       points: [
@@ -148,7 +148,7 @@ const PROJECT_CONTENT = {
     ),
     infoRow: [
       { label: "Built with", value: "React, JavaScript, Node.js/Express, Spotify API, OAuth" },
-      { label: "Finished date", value: "January 2026" },
+      { label: "Finished date", value: "February 2026" },
       {
         label: "Links",
         value: (
